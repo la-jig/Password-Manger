@@ -3,6 +3,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.awt.event.*;
 import java.io.File;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -91,19 +92,25 @@ public class Main {
                     sb.append(chars.charAt(random.nextInt(chars.length())));
                 }
                 input_password = JOptionPane.showInputDialog("Enter a new password: ");
+
                 String recoveryKey = sb.toString();
                 sql = "INSERT INTO masterpassword(password, recoverykey)" +
-                        "VALUES('" +  EncryptorAesGcmPassword.encrypt(input_password.getBytes(), recoveryKey) + "', '" + recoveryKey + "')";
+                        "VALUES('" +  EncryptorAesGcmPassword.encrypt(input_password.getBytes(), recoveryKey) + "', '" +  MessageDigest.getInstance("SHA3-256").digest(recoveryKey.getBytes()).toString() + "')";
                 stmt.executeUpdate(sql);
 
                 StringSelection strselection = new StringSelection(recoveryKey);
-
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(strselection, null);
 
                 JOptionPane.showMessageDialog(window, "Your recovery key is: " + recoveryKey + "\nIt's has been copied to clipboard!", "Setup", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 input_password = JOptionPane.showInputDialog("Enter master password: ");
+
+                if (input_password == "") {
+                    String recovery_key = JOptionPane.showInputDialog("Enter recovery key: ");
+
+
+                }
             }
             ResultSet passwords = stmt.executeQuery("SELECT * FROM vault");
             while (passwords.next()) {
